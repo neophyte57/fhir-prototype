@@ -1,0 +1,63 @@
+<project name="FHIR Interface Build" default="deploy" basedir=".">
+	<description>Build file for FHIR Interface</description>	
+	
+	<!-- set global properties for this build -->
+	<property name="src" location="E:/workspace/FHIR Prototype/src" />
+	<property name="build" location="E:/workspace/FHIR Prototype/bin" />
+	<property name="dist" location="E:/workspace/FHIR Prototype/dist" />
+
+
+	<!-- Sets the classpath -->
+	<path id="fhir-proto.project.classpath" description="Sets the classpath">
+		<pathelement location="." />
+		<fileset dir="${src}/../lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+
+
+	<target name="init">
+		<!-- Create the time stamp -->
+		<tstamp />
+		<!-- Create the build directory structure used by compile -->
+		<mkdir dir="${build}" />
+	</target>
+
+	<target name="compile" depends="init" description="compile the source">
+
+		<!-- Compile the java code from ${src} into ${build} -->
+		<javac srcdir="${src}" destdir="${build}" target="1.7" debug="true" debuglevel="lines,vars,source">
+			<classpath refid="fhir-proto.project.classpath" />
+		</javac>
+	</target>
+
+	<target name="dist" depends="compile" description="generate the distribution">
+		<!-- Create the distribution directory -->
+		<mkdir dir="${dist}" />
+
+		<war destfile="${dist}/fhir-proto.war" webxml="${src}/../descriptors/WEB-INF/web.xml">
+			<lib dir="${src}/../lib/hapi-fhir-2.5">
+				<include name="*.jar" />
+			</lib>
+			<lib file="${src}/../lib/j2ee.jar" />
+			<classes dir="${build}" />	
+		</war>
+	<!--
+			<jar destfile="${dist}/fhir-proto.war">		
+			</jar>
+	-->		
+	</target>
+
+	<target name="deploy" depends="dist" description="Deploy the distribution">
+		<delete dir="C:/Java/apache-tomcat-9.0.0.M20/webapps/fhir-proto" />
+		<!-- Let Tomcat auto-deploy -->
+		<copy file="${dist}/fhir-proto.war" tofile="C:/Java/apache-tomcat-9.0.0.M20/webapps/fhir-proto.war" overwrite="true" />
+	</target>
+
+	<target name="clean" description="clean up">
+		<!-- Delete the ${build} and ${dist} directory trees -->
+		<delete dir="${build}" />
+		<delete dir="${dist}" />
+	</target>
+</project>
